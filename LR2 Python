@@ -15,7 +15,7 @@ class Cat(Animal):   #подкласс класса animal
         self.breed = breed
         print(f"Порода кошки:{ self.breed}")
 
-cat = Cat("Борис","13 Лет","Самец","Сфинкс")
+cat = Cat("Герра","13 Лет","Самка","Сфинкс")
 
 
 cat.display_info()
