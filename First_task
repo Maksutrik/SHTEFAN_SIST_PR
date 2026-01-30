@@ -1,0 +1,29 @@
+List = [0,11,22,33,44,55,77,55,66,99]
+print(List)
+print(List[-2],List[3],List[5],List[7])
+# Предпоследний и несколько элементов по выбору с помощью индекса
+
+List[4]=888888
+print(List)
+# Замена элемента в определенной позиции
+
+print(List[8:10])
+# Вывод элементов в определённом диапазоне
+
+List.append('aboba')
+List.insert(6,'seredina')
+print(List)
+# Добавление элементов в конце и в середине списка
+
+print(List.count(55))
+print(List.count('aboba'))
+# "Посчитайте количество определённых элементов в списке"
+
+
+List2 = List.copy()
+print(List2)
+
+del List[1]
+# Изменяю первый список
+
+print(List,List2)
