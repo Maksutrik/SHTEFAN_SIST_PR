@@ -1,0 +1,21 @@
+class Animal:
+    def __init__(self,name,year,sex):
+        self.name = name
+        self.year = year
+        self.sex = sex
+        
+    def display_info(self):
+        print(f"Имя: {self.name}"
+        f"\nВозраст: {self.year}"
+        f"\nПол: {self.sex}")
+        
+class Cat(Animal):   #подкласс класса animal
+    def __init__(self, name, year, sex, breed): #новый агрумент breed(порода)
+        super().__init__(name, year, sex)  #Передача данных
+        self.breed = breed
+        print(f"Порода кошки:{ self.breed}")
+
+cat = Cat("Борис","13 Лет","Самец","Сфинкс")
+
+
+cat.display_info()
