@@ -12,6 +12,8 @@ print(List[8:10])
 
 List.append('aboba')
 List.insert(6,'seredina')
+print(len(subjects)) #программа считает длину списка,а мы уже в уме делим на два
+
 print(List)
 # Добавление элементов в конце и в середине списка
 
