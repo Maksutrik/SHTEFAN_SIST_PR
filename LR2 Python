@@ -1,3 +1,7 @@
+python   python   python   python   python   python   python   python   
+python   python   python   python   python   python   python   python   
+python   python   python   python   python   python   python   python   
+
 class Animal:
     def __init__(self,name,year,sex):
         self.name = name
@@ -14,8 +18,124 @@ class Cat(Animal):   #подкласс класса animal
         super().__init__(name, year, sex)  #Передача данных
         self.breed = breed
         print(f"Порода кошки:{ self.breed}")
+        
+    def playing(self):
+        if self.year > 10:
+            print("Кошка старенькая")
+        else:
+            print("Кошка молодая")
 
-cat = Cat("Герра","13 Лет","Самка","Сфинкс")
+cat = Cat("Герра",13,"Женский","Сфинкс")
 
 
 cat.display_info()
+cat.playing()
+
+
+
+
+
+
+
+
+C#   C#   C#   C#   C#   C#   C#   C#   C#   C#   C#   C#   C#   C#   
+
+C#   C#   C#   C#   C#   C#   C#   C#   C#   C#   C#   C#   C#   C#   
+
+C#   C#   C#   C#   C#   C#   C#   C#   C#   C#   C#   C#   C#   C#   
+
+
+using System;
+using System.Security.Cryptography.X509Certificates;
+
+public class Animal
+{
+    // Поля базового класса
+    protected string Name;  // Защищенное поле — доступно в подклассах
+    protected string Sex; // Защищенное поле — доступно в подклассах
+    protected int Age;  // Защищенное поле — доступно в подклассах
+
+    // Конструктор базового класса
+    public Animal(string name, string sex, int age)
+    {
+        Name = name;
+        Age = age;
+        Sex = sex;
+    }
+
+    // Метод, помеченный как виртуальный, чтобы можно было переопределить в подклассе
+    public virtual void DisplayInfo()
+    {
+        Console.WriteLine($"Имя: {Name},пол:{Sex}, возраст: {Age}");
+    }
+    public void CheckAge()
+    {
+        if (Age > 10)
+        {
+            Console.WriteLine($"{Name} - старенькое животное ( {Age}лет)");
+        }
+        else
+        {
+            Console.WriteLine($"{Name} - молодое животное({Age}лет)");
+        }
+    }
+}
+
+// Подкласс Сотрудник
+public class Monkey : Animal
+{
+    private string Breed;    // порода
+
+    // Конструктор подкласса
+    public Monkey(string name, string sex, int age, string breed) : base(name,sex, age)
+    {
+        // Передача данных в базовый класс через вызов base
+        Breed = breed; // Инициализация собственного поля
+    }
+
+    // Переопределяем метод базового класса
+    public override void DisplayInfo()
+    {
+        // Данные из базового класса доступны благодаря модификатору protected
+        Console.WriteLine($"Имя обезьянки: {Name},пол: {Sex}, возраст: {Age}, порода: {Breed}");
+    }
+}
+
+// Подкласс котёнок
+public class Kitty : Animal
+{
+    private string Cut; // Кастрирован/а?
+
+    // Конструктор подкласса
+    public Kitty(string name, string sex, int age, string cut) : base(name,sex, age)
+    {
+        // Передача данных в базовый класс через вызов base
+        Cut = cut;
+    }
+
+    // Переопределяем метод базового класса
+    public override void DisplayInfo()
+    {
+        // Данные из базового класса доступны благодаря модификатору protected
+        Console.WriteLine($"Котёнок: {Name}, пол: {Sex}, возраст: {Age}, кастрирован/а?: {Cut}");
+    }
+}
+
+// Основной класс программы
+class Program
+{
+    static void Main(string[] args)
+    {
+        // Создаем объекты
+        Animal animal = new Animal("Анастасия", "женский", 14);
+        Monkey monkey = new Monkey("Борисыч","мужской", 2, "Шимпанзе");
+        Kitty kitty = new Kitty("Владислав", "мужской", 28, "Да((");
+
+        animal.DisplayInfo();   // Вызывает базовую версию
+        animal.CheckAge(); //вызывает проверку возраста
+        monkey.DisplayInfo(); // Вызывает переопределенную версию из подкласса обезьян
+        monkey.CheckAge(); //вызывает проверку возраста
+        kitty.DisplayInfo(); // Вызывает переопределенную версию из подкласса кошек
+        kitty.CheckAge(); //вызывает проверку возраста
+    }
+}
