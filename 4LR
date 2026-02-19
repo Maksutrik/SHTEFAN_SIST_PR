@@ -15,3 +15,6 @@ foreach (ProcessThread thread in processThreads)
 {
     Console.WriteLine($"ThreadId: {thread.Id}");
 }
+
+Process.Start(@"mspaint.exe");
+Process.Start(@"C:\Program Files\Google\Chrome\Application\chrome");
