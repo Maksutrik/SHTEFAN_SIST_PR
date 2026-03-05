@@ -1,0 +1,144 @@
+using System;
+using System.Net.Http;
+using System.Text;
+using System.Windows;
+using Newtonsoft.Json.Linq; // Установите Newtonsoft.Json через NuGet
+
+namespace WpfApp1
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
+
+        private async void btnLoad_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    // Добавляем заголовки
+                    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
+                    client.DefaultRequestHeaders.Add("Accept", "application/json");
+
+                    // Используем JSON API Всемирного банка для 2020 года
+                    string url = "https://api.worldbank.org/v2/country/all/indicator/SP.POP.TOTL?format=json&per_page=100&date=2020";
+
+                    string jsonResponse = await client.GetStringAsync(url);
+
+                    // Парсим JSON с помощью Newtonsoft.Json
+                    var jsonArray = JArray.Parse(jsonResponse);
+
+                    // Первый элемент содержит метаданные
+                    var metadata = jsonArray[0];
+                    int totalPages = metadata["pages"]?.Value<int>() ?? 0;
+                    int totalItems = metadata["total"]?.Value<int>() ?? 0;
+
+                    // Второй элемент содержит данные
+                    var dataArray = jsonArray[1] as JArray;
+
+                    var sb = new StringBuilder();
+                    sb.AppendLine($"=== НАСЕЛЕНИЕ СТРАН (2020 год) ===");
+                    sb.AppendLine($"Всего записей: {totalItems}");
+                    sb.AppendLine(new string('═', 80));
+                    sb.AppendLine($"{"Страна",-40} {"Население",15} {"Код",-10}");
+                    sb.AppendLine(new string('─', 80));
+
+                    int count = 0;
+                    if (dataArray != null)
+                    {
+                        foreach (var item in dataArray)
+                        {
+                            string country = item["country"]?["value"]?.ToString() ?? "Неизвестно";
+                            string countryCode = item["country"]?["id"]?.ToString() ?? "";
+                            string value = item["value"]?.ToString();
+
+                            // Форматируем население с разделителями
+                            string population = "Нет данных";
+                            if (!string.IsNullOrEmpty(value) && value != "null")
+                            {
+                                if (long.TryParse(value, out long popValue))
+                                {
+                                    population = popValue.ToString("N0");
+                                }
+                                else
+                                {
+                                    population = value;
+                                }
+                            }
+
+                            sb.AppendLine($"{country,-40} {population,15} {countryCode,-10}");
+                            count++;
+                        }
+                    }
+
+                    sb.AppendLine(new string('─', 80));
+                    sb.AppendLine($"Показано стран: {count}");
+
+                    // Добавляем информацию о регионах и агрегированных данных
+                    sb.AppendLine("\n\n=== ДОПОЛНИТЕЛЬНАЯ ИНФОРМАЦИЯ ===");
+                    sb.AppendLine("Примечание: Включены данные по странам и регионам");
+                    sb.AppendLine("• Коды стран: 3-буквенные коды ISO");
+                    sb.AppendLine("• Население показано с разделителями разрядов");
+
+                    txbContent.Text = sb.ToString();
+                    txbContent.FontFamily = new System.Windows.Media.FontFamily("Consolas");
+                    txbContent.FontSize = 12;
+                    txbContent.TextWrapping = TextWrapping.NoWrap; // Для лучшего отображения таблицы
+
+                    // Добавляем горизонтальный скроллбар
+                    var scrollViewer = FindVisualChild<System.Windows.Controls.ScrollViewer>(txbContent);
+                    if (scrollViewer != null)
+                    {
+                        scrollViewer.HorizontalScrollBarVisibility = System.Windows.Controls.ScrollBarVisibility.Auto;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка: {ex.Message}\n\nStack Trace: {ex.StackTrace}", "Ошибка");
+            }
+        }
+
+        // Вспомогательный метод для поиска ScrollViewer
+        private static T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            for (int i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = System.Windows.Media.VisualTreeHelper.GetChild(parent, i);
+                if (child != null && child is T)
+                    return (T)child;
+
+                var childOfChild = FindVisualChild<T>(child);
+                if (childOfChild != null)
+                    return childOfChild;
+            }
+            return null;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+WPF^
+<Window x:Class="WpfApp1.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Загрузчик данных" Height="450" Width="800">
+    <Grid>
+        <TextBox x:Name="txbContent" Margin="10" TextWrapping="Wrap"/>
+        <Button x:Name="btnLoad" Content="Загрузить" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="100" Click="btnLoad_Click"/>
+    </Grid>
+</Window>
