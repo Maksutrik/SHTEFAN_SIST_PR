@@ -1,0 +1,235 @@
+using System;
+using System.Threading;
+using OfficeOpenXml;
+using System.IO;
+
+namespace ExcelMultiThreadRead
+{
+    class Program
+    {
+        
+        static string excelFilePath = @"C:\Users\23_ИП-291к\Desktop\Godjo.xlsx"; 
+
+        static void Main(string[] args)
+        {
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+            // настройка лицензии для EPPlus 
+            ExcelPackage.License.SetNonCommercialPersonal("Student");
+
+            
+            Console.WriteLine("Главный поток начал работу");
+            Console.WriteLine($"Id главного потока: {Thread.CurrentThread.ManagedThreadId}");
+            Console.WriteLine($"Статус главного потока: {Thread.CurrentThread.ThreadState}");
+            Console.WriteLine();
+
+            
+            if (!CheckFileExists())
+            {
+                Console.WriteLine("Файл не найден. Убедитесь, что файл существует и укажите правильный путь.");
+                Console.WriteLine("Нажмите любую клавишу для выхода...");
+                Console.ReadKey();
+                return;
+            }
+
+            Console.WriteLine($"Excel файл: {excelFilePath}");
+            Console.WriteLine();
+
+            
+            Thread thread1 = new Thread(ReadSheet1);
+            Thread thread2 = new Thread(ReadSheet2);
+
+            
+            thread1.Name = "Поток для Листа 1 (с задержкой)";
+            thread2.Name = "Поток для Листа 2 (без задержки)";
+
+            
+            PrintThreadInfo(thread1, thread2);
+
+            
+            Console.WriteLine("\nЗапуск потоков...");
+            thread1.Start();
+            thread2.Start();
+
+            // Мониторинг статусов во время выполнения
+            MonitorThreads(thread1, thread2);
+
+            // Ожидаем завершения потоков
+            thread1.Join();
+            thread2.Join();
+
+            Console.WriteLine("\n=== Все потоки завершили работу ===");
+            Console.WriteLine($"Финальный статус потоков:");
+            Console.WriteLine($"Поток 1 ({thread1.Name}): {thread1.ThreadState}");
+            Console.WriteLine($"Поток 2 ({thread2.Name}): {thread2.ThreadState}");
+
+            Console.WriteLine("\nНажмите любую клавишу для выхода...");
+            Console.ReadKey();
+        }
+
+        // Метод для проверки существования файла
+        static bool CheckFileExists()
+        {
+            if (!File.Exists(excelFilePath))
+            {
+                Console.WriteLine($"ОШИБКА: Файл не найден: {excelFilePath}");
+                return false;
+            }
+
+            return true;
+        }
+
+        // Метод для вывода информации о потоках
+        static void PrintThreadInfo(Thread thread1, Thread thread2)
+        {
+            Console.WriteLine("Информация о потоках до запуска:");
+            Console.WriteLine($"Поток 1: Имя - {thread1.Name}, Id - {thread1.ManagedThreadId}, Статус - {thread1.ThreadState}, Фоновый - {thread1.IsBackground}");
+            Console.WriteLine($"Поток 2: Имя - {thread2.Name}, Id - {thread2.ManagedThreadId}, Статус - {thread2.ThreadState}, Фоновый - {thread2.IsBackground}");
+        }
+
+        // Метод для мониторинга статусов потоков
+        static void MonitorThreads(Thread thread1, Thread thread2)
+        {
+            Console.WriteLine("\nМониторинг статусов потоков во время выполнения:");
+
+            while (thread1.IsAlive || thread2.IsAlive)
+            {
+                string status1 = thread1.IsAlive ? thread1.ThreadState.ToString() : "Завершен";
+                string status2 = thread2.IsAlive ? thread2.ThreadState.ToString() : "Завершен";
+
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Статус: {thread1.Name} - {status1}, {thread2.Name} - {status2}");
+
+                Thread.Sleep(500); // Проверяем каждые 500 мс
+            }
+        }
+
+        // Метод для чтения ПЕРВОГО листа (С ЗАДЕРЖКОЙ)
+        static void ReadSheet1()
+        {
+            Thread currentThread = Thread.CurrentThread;
+
+            Console.WriteLine($"\n--- {currentThread.Name} (Id: {currentThread.ManagedThreadId}) начал работу ---");
+            Console.WriteLine($"Статус потока в начале работы: {currentThread.ThreadState}");
+
+            try
+            {
+                // ПРИМЕНЯЕМ ЗАДЕРЖКУ 3 СЕКУНДЫ К ПЕРВОМУ ПОТОКУ
+                Console.WriteLine($"{currentThread.Name}: ПРИМЕНЯЮ ЗАДЕРЖКУ 3 СЕКУНДЫ...");
+
+                for (int i = 0; i < 3; i++)
+                {
+                    Thread.Sleep(1000);
+                    Console.WriteLine($"{currentThread.Name}: Задержка... прошло {i + 1} сек. Статус: {currentThread.ThreadState}");
+                }
+
+                Console.WriteLine($"{currentThread.Name}: Задержка завершена");
+
+                // Читаем ПЕРВЫЙ лист Excel
+                Console.WriteLine($"{currentThread.Name}: Начинаю чтение ПЕРВОГО листа...");
+                ReadSheet(0, "Первый лист", currentThread.Name); // Индекс 0 = первый лист
+
+                Console.WriteLine($"{currentThread.Name}: Чтение завершено");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"{currentThread.Name}: ОШИБКА - {ex.Message}");
+            }
+
+            Console.WriteLine($"--- {currentThread.Name} завершил работу. Финальный статус: {currentThread.ThreadState} ---\n");
+        }
+
+        // Метод для чтения ВТОРОГО листа (БЕЗ ЗАДЕРЖКИ)
+        static void ReadSheet2()
+        {
+            Thread currentThread = Thread.CurrentThread;
+
+            Console.WriteLine($"\n--- {currentThread.Name} (Id: {currentThread.ManagedThreadId}) начал работу ---");
+            Console.WriteLine($"Статус потока в начале работы: {currentThread.ThreadState}");
+
+            try
+            {
+                // Читаем ВТОРОЙ лист Excel БЕЗ ЗАДЕРЖКИ
+                Console.WriteLine($"{currentThread.Name}: Начинаю чтение ВТОРОГО листа (БЕЗ ЗАДЕРЖКИ)...");
+
+                // Проверяем, есть ли второй лист
+                int sheetIndex = 1; // Индекс 1 = второй лист
+
+                using (var package = new ExcelPackage(new FileInfo(excelFilePath)))
+                {
+                    if (package.Workbook.Worksheets.Count <= sheetIndex)
+                    {
+                        Console.WriteLine($"{currentThread.Name}: ВНИМАНИЕ! В файле нет второго листа. Читаю первый лист.");
+                        sheetIndex = 0;
+                    }
+                }
+
+                ReadSheet(sheetIndex, "Второй лист", currentThread.Name);
+
+                Console.WriteLine($"{currentThread.Name}: Чтение завершено");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"{currentThread.Name}: ОШИБКА - {ex.Message}");
+            }
+
+            Console.WriteLine($"--- {currentThread.Name} завершил работу. Финальный статус: {currentThread.ThreadState} ---\n");
+        }
+
+        // Общий метод для чтения листа Excel по индексу
+        static void ReadSheet(int sheetIndex, string sheetDescription, string threadName)
+        {
+            using (var package = new ExcelPackage(new FileInfo(excelFilePath)))
+            {
+                if (package.Workbook.Worksheets.Count == 0)
+                {
+                    Console.WriteLine($"{threadName}: Файл не содержит листов");
+                    return;
+                }
+
+                var worksheet = package.Workbook.Worksheets[sheetIndex];
+
+                Console.WriteLine($"\n{threadName}: Чтение {sheetDescription}: '{worksheet.Name}'");
+                Console.WriteLine($"{threadName}: Статус потока во время чтения: {Thread.CurrentThread.ThreadState}");
+
+                // Проверяем, есть ли данные на листе
+                if (worksheet.Dimension == null)
+                {
+                    Console.WriteLine($"{threadName}: Лист пуст");
+                    return;
+                }
+
+                int rowCount = worksheet.Dimension.Rows;
+                int colCount = worksheet.Dimension.Columns;
+
+                Console.WriteLine($"{threadName}: Размер листа: {rowCount} строк, {colCount} столбцов");
+
+                // Выводим содержимое листа
+                Console.WriteLine($"{threadName}: СОДЕРЖИМОЕ ЛИСТА:");
+                Console.WriteLine($"{threadName}: {new string('-', 50)}");
+
+                for (int row = 1; row <= rowCount; row++)
+                {
+                    string rowContent = $"Строка {row}: ";
+                    for (int col = 1; col <= colCount; col++)
+                    {
+                        object cellValue = worksheet.Cells[row, col].Value;
+                        string value = cellValue?.ToString() ?? "пусто";
+
+                        // Обрезаем длинные значения для красивого вывода
+                        if (value.Length > 15)
+                            value = value.Substring(0, 12) + "...";
+
+                        rowContent += value.PadRight(16);
+                    }
+                    Console.WriteLine($"{threadName}: {rowContent}");
+
+                    // Небольшая задержка для наглядности вывода
+                    Thread.Sleep(200);
+                }
+
+                Console.WriteLine($"{threadName}: {new string('-', 50)}");
+                Console.WriteLine($"{threadName}: Статус потока после чтения: {Thread.CurrentThread.ThreadState}");
+            }
+        }
+    }
+}
